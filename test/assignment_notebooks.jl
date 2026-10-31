@@ -85,6 +85,60 @@ module HomeworkSix end
 
 module HomeworkSeven end
 
+module HomeworkEight end
+
+function check_homework_eight_data(example)
+    @test example.I == 1:6
+    @test example.V == 0:6
+    @test Set(keys(example.q)) == Set(example.I)
+    @test all(i -> 0 < example.q[i] <= example.Q, example.I)
+    @test Set(keys(example.T)) == Set((i, j) for i in example.V, j in example.V)
+    @test all(i -> example.T[i, i] == 0, example.V)
+    @test all(pair -> example.T[pair] == example.T[reverse(pair)], keys(example.T))
+    @test example.route_time([1, 3]) == example.T[0, 1] + example.T[1, 3] + example.T[3, 0]
+    @test example.n == length(example.J) == 5
+
+    @test length(example.N) == 10
+    @test length(unique(example.A)) == 16
+    @test Set(keys(example.b)) == Set(example.N)
+    @test sum(values(example.b)) == 0
+    @test Set(keys(example.c)) == Set(keys(example.u)) == Set(keys(example.f_HW04)) == Set(example.A)
+    @test all(a -> all(i -> i in example.N, a), example.A)
+    @test all(a -> example.c[a] > 0 && example.u[a] >= 4, example.A)
+    @test all(a -> 0 <= example.f_HW04[a] <= example.u[a], example.A)
+    @test all(example.N) do i
+        sum(example.f_HW04[a] for a in example.A if a[1] == i; init = 0) -
+        sum(example.f_HW04[a] for a in example.A if a[2] == i; init = 0) == example.b[i]
+    end
+    @test sum(example.c[a] * example.f_HW04[a] for a in example.A) == 242
+    @test example.K == 1:3
+    @test Set(keys(example.B)) == Set((a, k) for a in example.A, k in 0:3)
+    @test all(a -> [example.B[a, k] for k in 0:3] == [0, 2, 4, example.u[a]], example.A)
+end
+
+@testset "Homework 8 starter notebook and student copy" begin
+    source = joinpath(REPOSITORY_ROOT, "assignments", "hw08")
+    mktempdir() do repository
+        mkpath(joinpath(repository, "assignments"))
+        cp(source, joinpath(repository, "assignments", "hw08"))
+        @test "hw08" in AssignmentWorkspace.available_assignments(repository)
+        destination = AssignmentWorkspace.start_assignment(repository, "hw08")
+        notebook = joinpath(destination, "hw08.ipynb")
+        for file in ("hw08.ipynb", "README.md", "README.html")
+            @test read(joinpath(destination, file)) == read(joinpath(source, file))
+        end
+        # The copied starter must work both beside the notebook and from the root.
+        for directory in (destination, repository)
+            cd(directory) do
+                execute_code_cells(HomeworkEight, notebook; cell_filename = "In[1]")
+            end
+            Base.invokelatest(check_homework_eight_data, HomeworkEight)
+        end
+        @test_throws ErrorException AssignmentWorkspace.start_assignment(repository, "hw08")
+        @test read(notebook) == read(joinpath(source, "hw08.ipynb"))
+    end
+end
+
 function check_homework_seven_data(example)
     for (devices, lower, upper, cost) in (
         (example.B, example.L, example.U, example.c),

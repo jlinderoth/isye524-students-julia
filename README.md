@@ -226,6 +226,9 @@ Available assignment templates are:
 - [HW07: Integer programming models and logic](assignments/hw07/README.md),
   with all numerical data included in the notebook. Enter `hw07` in the
   assignment-copy task.
+- [HW08: Set covering, tours, and piecewise-linear costs](assignments/hw08/README.md),
+  with all numerical data included in the notebook. Enter `hw08` in the
+  assignment-copy task.
 
 See [Assignments and PDF Submission](docs/canvas-assignment-workflow.md) for the
 complete recurring workflow. See

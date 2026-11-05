@@ -153,6 +153,9 @@ binary variables, first with a literal model and then an indexed formulation.
 production to binary machine-rental decisions and maximizes net profit.
 [notebooks/19-UFL.ipynb](notebooks/19-UFL.ipynb) solves uncapacitated facility
 location with Gurobi and includes an optional HiGHS/Gurobi timing comparison.
+[notebooks/20-BranchAndBound.ipynb](notebooks/20-BranchAndBound.ipynb) walks
+through a five-node knapsack branch-and-bound tree using HiGHS LP relaxations,
+tracking global bounds and pruning by integrality, bound, and infeasibility.
 All class examples use packages included in the course environment. UFL also
 requires a Gurobi license; its opening section explains academic license setup.
 

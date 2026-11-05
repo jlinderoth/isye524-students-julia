@@ -133,6 +133,7 @@ end
 module KnapsackExample end
 module ClothCoExample end
 module UFLExample end
+module BranchAndBoundExample end
 
 @testset "Integer programming class examples" begin
     @testset "Knapsack formulations" begin
@@ -172,6 +173,49 @@ module UFLExample end
         @test dot([3, 2, 6], value.(example.x)) <= 150 + 1e-8
         @test dot([4, 3, 4], value.(example.x)) <= 160 + 1e-8
         @test all(value.(example.x) .<= 54 .* value.(example.z) .+ 1e-8)
+    end
+
+    @testset "Knapsack branch and bound" begin
+        path = joinpath(REPOSITORY_ROOT, "notebooks", "20-BranchAndBound.ipynb")
+        bounds = Tuple{Float64,Float64}[]
+        example = execute_code_cells(BranchAndBoundExample, path;
+            after_cell = (example, source) -> begin
+                if occursin("U = show_bounds", source)
+                    push!(bounds, (example.L, example.U))
+                end
+            end,
+        )
+        # Enumerate binary selections independently of the LP relaxations.
+        feasible = [collect(items)
+            for items in Iterators.product(ntuple(_ -> 0:1, 4)...)
+            if dot([8, 5, 3, 2], collect(items)) <= 10]
+        best = maximum(dot([15, 12, 4, 2], items) for items in feasible)
+        @test example.L ≈ best atol = 1e-8
+        @test example.U ≈ best atol = 1e-8
+        @test example.incumbent ≈ [0, 1, 1, 1] atol = 1e-8
+        @test isempty(example.active_bounds)
+        @test example.node1.bound ≈ 171 / 8 atol = 1e-8
+        @test example.node2.bound ≈ 18 atol = 1e-8
+        @test example.node3.bound ≈ 99 / 5 atol = 1e-8
+        @test example.node4.bound ≈ 53 / 3 atol = 1e-8
+        @test example.node5 === nothing
+        @test termination_status(example.m) == MOI.INFEASIBLE
+        @test all(!is_binary(x) && !is_integer(x) for x in example.x)
+        # Unsolved children retain their parent's bound; pruning node 4 alone
+        # cannot lower the global bound while node 5 is still active.
+        expected_bounds = [(0.0, 21.375), (0.0, 21.375), (18.0, 21.375),
+            (18.0, 19.8), (18.0, 19.8), (18.0, 19.8), (18.0, 18.0)]
+        @test length(bounds) == length(expected_bounds)
+        for ((lower, upper), (expected_lower, expected_upper)) in zip(bounds, expected_bounds)
+            @test lower ≈ expected_lower atol = 1e-8
+            @test upper ≈ expected_upper atol = 1e-8
+            @test lower <= best + 1e-8 <= upper + 1e-8
+        end
+        # Restarting at setup must reset the incumbent and active tree.
+        execute_code_cells(BranchAndBoundExample, path)
+        @test BranchAndBoundExample.L ≈ best atol = 1e-8
+        @test BranchAndBoundExample.U ≈ best atol = 1e-8
+        @test isempty(BranchAndBoundExample.active_bounds)
     end
 
     @testset "UFL model and optional solver comparison" begin

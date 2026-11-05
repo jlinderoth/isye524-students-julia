@@ -176,7 +176,7 @@ module BranchAndBoundExample end
     end
 
     @testset "Knapsack branch and bound" begin
-        path = joinpath(REPOSITORY_ROOT, "notebooks", "20-BranchAndBound.ipynb")
+        path = joinpath(REPOSITORY_ROOT, "notebooks", "23-BranchAndBound.ipynb")
         bounds = Tuple{Float64,Float64}[]
         example = execute_code_cells(BranchAndBoundExample, path;
             after_cell = (example, source) -> begin
@@ -260,6 +260,141 @@ module BranchAndBoundExample end
         @test example.tt_highs_mean ≈ vec(sum(example.tt_highs; dims = 2)) ./ 2
         @test example.tt_gurobi_mean ≈ vec(sum(example.tt_gurobi; dims = 2)) ./ 2
         @test length(example.comparison_plot.series_list) == 2
+    end
+end
+
+module SudokuExample end
+module CuttingPipeExample end
+module TSPExample end
+
+# Independent subset dynamic program, without JuMP or subtour constraints.
+function shortest_tour_length(distances)
+    n = size(distances, 1)
+    states = 1 << (n - 1)
+    best = fill(Inf, states, n)
+    best[1, 1] = 0.0
+    for mask in 0:(states - 1), last in 1:n
+        isfinite(best[mask + 1, last]) || continue
+        for next in 2:n
+            bit = 1 << (next - 2)
+            mask & bit == 0 || continue
+            updated = mask | bit
+            best[updated + 1, next] = min(
+                best[updated + 1, next],
+                best[mask + 1, last] + distances[last, next],
+            )
+        end
+    end
+    return minimum(best[end, last] + distances[last, 1] for last in 2:n)
+end
+
+@testset "Sudoku, pipe cutting, and TSP class examples" begin
+    @testset "Sudoku completion" begin
+        example = execute_code_cells(SudokuExample,
+            joinpath(REPOSITORY_ROOT, "notebooks", "20-Sudoku.ipynb"))
+        @test is_solved_and_feasible(example.m; allow_local = false)
+        @test size(example.solution) == (9, 9)
+        for i in 1:9
+            @test sort(example.solution[i, :]) == collect(1:9)
+            @test sort(example.solution[:, i]) == collect(1:9)
+        end
+        for i in 1:3:9, j in 1:3:9
+            @test sort(vec(example.solution[i:i+2, j:j+2])) == collect(1:9)
+        end
+        for i in 1:9, j in 1:9
+            if example.given[i, j] != 0
+                @test example.solution[i, j] == example.given[i, j]
+            end
+        end
+        @test all(v -> isapprox(v, round(v); atol = 1e-8), value.(example.x))
+    end
+
+    @testset "Equivalent pipe-cutting models" begin
+        objectives = Float64[]
+        example = execute_code_cells(CuttingPipeExample,
+            joinpath(REPOSITORY_ROOT, "notebooks", "21-CuttingPipe.ipynb");
+            after_cell = (example, source) -> begin
+                occursin("optimize!(m)", source) || return
+                @test is_solved_and_feasible(example.m; allow_local = false)
+                push!(objectives, objective_value(example.m))
+                counts = value.(example.x)
+                @test all(v -> v >= -1e-8 &&
+                    isapprox(v, round(v); atol = 1e-8), counts)
+                if ndims(counts) == 2
+                    used = value.(example.z)
+                    @test all(v -> isapprox(v, 0; atol = 1e-8) ||
+                        isapprox(v, 1; atol = 1e-8), used)
+                    @test all([4, 5, 6]' * counts .<= 19 .+ 1e-8)
+                    @test all(vec(sum(counts; dims = 2)) .>=
+                        [12, 15, 22] .* example.scale .- 1e-8)
+                    @test all(counts .<= [4, 3, 3] * used' .+ 1e-8)
+                    @test sum(used) ≈ objective_value(example.m) atol = 1e-8
+                else
+                    @test all(example.A * counts .>=
+                        [12, 15, 22] .* example.scale .- 1e-8)
+                    @test sum(counts) ≈ objective_value(example.m) atol = 1e-8
+                end
+            end,
+        )
+        # Total requested length provides a lower bound attained by both models.
+        lower_bound = cld(4 * 12 + 5 * 15 + 6 * 22, 19)
+        @test objectives ≈ fill(lower_bound, 2) atol = 1e-8
+        # Independently enumerate every maximal feasible cutting pattern.
+        maximal = Set(
+            (a, b, c) for a in 0:4, b in 0:3, c in 0:3
+            if 15 < 4a + 5b + 6c <= 19
+        )
+        @test Set(Tuple(column) for column in eachcol(example.A)) == maximal
+        @test size(example.A, 2) == length(maximal)
+    end
+
+    @testset "TSP lower bound and exact tours" begin
+        objectives = Float64[]
+        arc_sets = Matrix{Float64}[]
+        example = execute_code_cells(TSPExample,
+            joinpath(REPOSITORY_ROOT, "notebooks", "22-TSP.ipynb");
+            after_cell = (example, source) -> begin
+                occursin("optimize!(m)", source) || return
+                @test is_solved_and_feasible(example.m; allow_local = false)
+                push!(objectives, objective_value(example.m))
+                push!(arc_sets, [value(example.x[i, j])
+                    for i in example.cities, j in example.cities])
+            end,
+        )
+        best = shortest_tour_length(example.distances)
+        @test length(objectives) == 3
+        @test objectives[1] < best
+        @test objectives[2:3] ≈ fill(best, 2) atol = 1e-8
+        for (index, arcs) in enumerate(arc_sets)
+            @test all(v -> isapprox(v, 0; atol = 1e-8) ||
+                isapprox(v, 1; atol = 1e-8), arcs)
+            @test all(isapprox.(sum(arcs; dims = 1), 1; atol = 1e-8))
+            @test all(isapprox.(sum(arcs; dims = 2), 1; atol = 1e-8))
+            @test all(abs.(diag(arcs)) .<= 1e-8)
+            @test sum(arcs .* example.distances) ≈ objectives[index] atol = 1e-8
+            named = example.NamedArray(arcs, (example.cities, example.cities))
+            cycles = Base.invokelatest(example.getAllSubtours, named)
+            if index == 1
+                @test length(cycles) > 1
+            else
+                @test length(cycles) == 1
+                @test length(only(cycles)) == example.N + 1
+                @test Set(only(cycles)) == Set(example.cities)
+                @test first(only(cycles)) == last(only(cycles))
+            end
+        end
+        @test length(example.sols) > 1
+        for city in example.cities
+            @test 1 - 1e-8 <= value(example.u[city]) <= example.N + 1e-8
+        end
+        @test value(example.u[first(example.cities)]) ≈ 1.0 atol = 1e-8
+        # Traversal must reject fractional or malformed cycle covers.
+        fractional = example.NamedArray(fill(0.5, example.N, example.N),
+            (example.cities, example.cities))
+        @test_throws ErrorException Base.invokelatest(example.getAllSubtours, fractional)
+        invalid = example.NamedArray(zeros(example.N, example.N),
+            (example.cities, example.cities))
+        @test_throws ErrorException Base.invokelatest(example.getAllSubtours, invalid)
     end
 end
 

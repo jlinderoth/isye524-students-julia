@@ -1,0 +1,70 @@
+<h1 id="homework-07-integer-programming-models-and-logic">Homework 07:
+Integer programming models and logic</h1>
+<p>Due <strong>Monday, November 2, 2026, at 11:59 p.m. (Madison
+time)</strong>.</p>
+<h2 id="files-and-getting-started">Files and getting started</h2>
+<ul>
+<li><code>hw07.ipynb</code>: the assignment, all numerical data, and
+response areas. No separate data files are required.</li>
+<li><code>README.md</code>: this overview; <code>README.html</code>
+contains the same instructions for Canvas.</li>
+</ul>
+<p>Follow <a
+href="https://github.com/jlinderoth/isye524-students-julia/blob/main/docs/canvas-assignment-workflow.md">Assignments
+and PDF Submission</a> for updating, copying, exporting, and backing up
+your work.</p>
+<p>In VS Code, use <strong>Tasks: Run Task</strong> to run <strong>ISyE
+524: Update course repository</strong>, then <strong>ISyE 524: Start an
+assignment from its template</strong>, entering
+<strong><code>hw07</code></strong>. Open
+<strong><code>student-work/hw07/hw07.ipynb</code></strong> and select
+the Julia 1.12 kernel. An existing working copy will not be overwritten.
+Later course updates do not automatically update your personal copy.</p>
+<h2 id="complete-hw07">Complete HW07</h2>
+<p>Complete all three problems:</p>
+<ol type="1">
+<li><strong>Steam power with operating minimums:</strong> formulate and
+solve a mixed-integer model with on/off operating ranges. Compare high-
+and low-demand plans, then assess what changes if the operating minimums
+are removed.</li>
+<li><strong>Community projects with logical commitments:</strong>
+maximize impact subject to a budget, prerequisites, incompatibilities,
+projects undertaken together, and a joint-program bonus. Extend the
+model with a supervisor fee triggered by an integer workload
+threshold.</li>
+<li><strong>Auror posts and minimum set covering:</strong> use the
+supplied coverage sets to minimize the number of posts protecting eight
+districts. Report locations and verify every district is protected.</li>
+</ol>
+<p>Write each mathematical formulation before its implementation. Use
+the supplied decision-variable definitions and Julia/JuMP with HiGHS
+from the course environment. Check solver status and solution
+availability before reading values, and report the requested results
+with units. Problem 3 uses introductory set covering; no column
+generation or routing algorithm is required.</p>
+<p>For every written part, type LaTeX mathematics in Markdown or insert
+a clear photograph/scan of handwritten work. Keep each answer and its
+reasoning together, label subparts, and do not duplicate handwritten
+work in typed form. Implementations belong in code cells. The notebook
+explains image attachments and relative paths; see <a
+href="https://github.com/jlinderoth/isye524-students-julia/blob/main/docs/assignments.md#images-and-handwritten-work">Images
+and handwritten work</a>.</p>
+<p>AI tools may help debug your own code, explain syntax or error
+messages, and critique your work. They should not replace constructing
+your formulation, implementation, or written solution. End with the
+required <strong>collaboration and LLM-use statement</strong>: name
+collaborators and tools/models, identify the specific assistance,
+explain how it helped you learn, and describe how you checked it.
+Explicitly state if you worked alone or used no LLM.</p>
+<h2 id="submit">Submit</h2>
+<p>Run the notebook from top to bottom, check for errors, and save it
+with results visible. Export with the course PDF task appropriate to
+your TeX installation. Inspect
+<strong><code>submissions/hw07.pdf</code></strong>, including
+mathematics, tables, outputs, and handwritten images. Upload that
+<strong>single PDF to Gradescope</strong> and mark which PDF pages
+belong to each problem. <strong>You will not receive full marks unless
+you do.</strong></p>
+<p>Keep a separate backup of <code>student-work/hw07/</code>, including
+the notebook and any external images. Git does not back up that
+folder.</p>

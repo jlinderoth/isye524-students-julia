@@ -153,7 +153,14 @@ binary variables, first with a literal model and then an indexed formulation.
 production to binary machine-rental decisions and maximizes net profit.
 [notebooks/19-UFL.ipynb](notebooks/19-UFL.ipynb) solves uncapacitated facility
 location with Gurobi and includes an optional HiGHS/Gurobi timing comparison.
-[notebooks/20-BranchAndBound.ipynb](notebooks/20-BranchAndBound.ipynb) walks
+[notebooks/20-Sudoku.ipynb](notebooks/20-Sudoku.ipynb) completes a Sudoku grid
+using binary variables and row, column, and block constraints.
+[notebooks/21-CuttingPipe.ipynb](notebooks/21-CuttingPipe.ipynb) minimizes
+stock pipes using individual-pipe and enumerated-pattern formulations.
+[notebooks/22-TSP.ipynb](notebooks/22-TSP.ipynb) compares an assignment
+relaxation, adaptive subtour elimination, and the Miller–Tucker–Zemlin
+formulation for a ten-city traveling salesman problem.
+[notebooks/23-BranchAndBound.ipynb](notebooks/23-BranchAndBound.ipynb) walks
 through a five-node knapsack branch-and-bound tree using HiGHS LP relaxations,
 tracking global bounds and pruning by integrality, bound, and infeasibility.
 All class examples use packages included in the course environment. UFL also
@@ -219,6 +226,12 @@ Available assignment templates are:
 - [HW06: Network duality and integer production](assignments/hw06/README.md),
   with all network data and the figure included in the notebook. Enter `hw06`
   in the assignment-copy task.
+- [HW07: Integer programming models and logic](assignments/hw07/README.md),
+  with all numerical data included in the notebook. Enter `hw07` in the
+  assignment-copy task.
+- [HW08: Set covering, tours, and piecewise-linear costs](assignments/hw08/README.md),
+  with all numerical data included in the notebook. Enter `hw08` in the
+  assignment-copy task.
 
 See [Assignments and PDF Submission](docs/canvas-assignment-workflow.md) for the
 complete recurring workflow. See

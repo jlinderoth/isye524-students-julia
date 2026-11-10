@@ -232,6 +232,9 @@ Available assignment templates are:
 - [HW08: Set covering, tours, and piecewise-linear costs](assignments/hw08/README.md),
   with all numerical data included in the notebook. Enter `hw08` in the
   assignment-copy task.
+- [HW09: Quadratic assignment, IP algorithms, and least squares](assignments/hw09/README.md),
+  with all numerical data and an LP-solving helper included in the notebook.
+  Enter `hw09` in the assignment-copy task.
 
 See [Assignments and PDF Submission](docs/canvas-assignment-workflow.md) for the
 complete recurring workflow. See

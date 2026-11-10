@@ -87,6 +87,69 @@ module HomeworkSeven end
 
 module HomeworkEight end
 
+module HomeworkNine end
+
+function check_homework_nine_starter(example)
+    @test length(example.I) == 4
+    @test length(unique(example.J)) == 7
+    @test Set(keys(example.city_name)) == Set(example.J)
+    @test size(example.d_numbers) == (7, 7)
+    @test size(example.f_numbers) == (4, 4)
+    @test example.d_numbers == transpose(example.d_numbers)
+    @test all(example.d_numbers .>= 0) && all(example.f_numbers .>= 0)
+    @test all(j -> example.d[j, j] == 0, example.J)
+    @test all(i -> example.f[i, i] == 0, example.I)
+    @test all(example.d[j, l] == example.d_numbers[a, b]
+              for (a, j) in enumerate(example.J), (b, l) in enumerate(example.J))
+    @test all(example.f[i, k] == example.f_numbers[i, k]
+              for i in example.I, k in example.I)
+    @test length(example.measurements) == length(example.b) == 5
+    @test length(unique(example.measurements)) == 5
+    @test all(isfinite, example.b) && all(example.b .> 0)
+
+    # Exercise the supplied helper without recording answers to the search exercise.
+    root = example.node_lp()
+    fixed = Dict(j => 0 for j in 1:5)  # The supplied initial incumbent.
+    incumbent = example.node_lp(fixed)
+    strengthened = example.node_lp(; cuts = true)
+    for result in (root, incumbent, strengthened)
+        @test result.status == MOI.OPTIMAL
+        @test isfinite(result.bound)
+        @test length(result.x) == 5
+        @test all(x -> -1e-6 <= x <= 1 + 1e-6, result.x)
+    end
+    @test incumbent.x ≈ zeros(5) atol = 1e-6
+    @test incumbent.bound ≈ 0 atol = 1e-6
+    @test strengthened.bound <= root.bound + 1e-6
+    @test fixed == Dict(j => 0 for j in 1:5)
+    infeasible = example.node_lp(Dict(j => 1 for j in 1:5))
+    @test infeasible.status == MOI.INFEASIBLE
+    @test isnothing(infeasible.bound) && isnothing(infeasible.x)
+end
+
+@testset "Homework 9 starter notebook and student copy" begin
+    source = joinpath(REPOSITORY_ROOT, "assignments", "hw09")
+    mktempdir() do repository
+        mkpath(joinpath(repository, "assignments"))
+        cp(source, joinpath(repository, "assignments", "hw09"))
+        @test "hw09" in AssignmentWorkspace.available_assignments(repository)
+        destination = AssignmentWorkspace.start_assignment(repository, "hw09")
+        notebook = joinpath(destination, "hw09.ipynb")
+        for file in ("hw09.ipynb", "README.md", "README.html")
+            @test read(joinpath(destination, file)) == read(joinpath(source, file))
+        end
+        # The copied starter must work both beside the notebook and from the root.
+        for directory in (destination, repository)
+            cd(directory) do
+                execute_code_cells(HomeworkNine, notebook; cell_filename = "In[1]")
+            end
+            Base.invokelatest(check_homework_nine_starter, HomeworkNine)
+        end
+        @test_throws ErrorException AssignmentWorkspace.start_assignment(repository, "hw09")
+        @test read(notebook) == read(joinpath(source, "hw09.ipynb"))
+    end
+end
+
 function check_homework_eight_data(example)
     @test example.I == 1:6
     @test example.V == 0:6

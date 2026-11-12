@@ -163,6 +163,9 @@ formulation for a ten-city traveling salesman problem.
 [notebooks/23-BranchAndBound.ipynb](notebooks/23-BranchAndBound.ipynb) walks
 through a five-node knapsack branch-and-bound tree using HiGHS LP relaxations,
 tracking global bounds and pruning by integrality, bound, and infeasibility.
+[notebooks/24-RegressionPlots.ipynb](notebooks/24-RegressionPlots.ipynb) fits a
+degree-four polynomial using squared, absolute, and maximum residual losses,
+then compares how the fits respond to an outlier.
 All class examples use packages included in the course environment. UFL also
 requires a Gurobi license; its opening section explains academic license setup.
 

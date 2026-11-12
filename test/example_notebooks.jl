@@ -795,6 +795,38 @@ module ChebyshevExample end
     end
 end
 
+module RegressionPlotsExample end
+
+@testset "Regression loss comparison class example" begin
+    example = execute_code_cells(RegressionPlotsExample,
+        joinpath(REPOSITORY_ROOT, "notebooks", "24-RegressionPlots.ipynb"))
+    @test size(example.A) == (16, 5)
+    @test example.A[:, 1] == ones(16)
+    @test rank(example.A) == 5
+    @test example.y == [1, 3, 0, 1, 2, 4, 6, 7, 5, 5, 6, 7.2, 5.5, 4, 3.2, 5]
+    @test example.outlier_y !== example.y
+    @test example.outlier_y - example.y == [i == 8 ? 12.0 : 0.0 for i in 1:16]
+
+    for target in (example.y, example.outlier_y)
+        fits = [example.fit_loss(example.A, target, loss) for loss in example.losses]
+        residuals = [example.A * u - target for (u, _) in fits]
+        # Check the QP against Julia's independent least-squares solve.
+        @test example.A * fits[1][1] ≈ example.A * (example.A \ target) atol = 1e-5
+        loss_functions = (r -> sum(abs2, r), r -> sum(abs, r), r -> maximum(abs, r))
+        for (index, loss) in enumerate(loss_functions)
+            @test fits[index][2] ≈ loss(residuals[index]) atol = 1e-6
+            # Each model must perform best on the loss it actually minimizes.
+            @test all(loss(residuals[index]) <= loss(r) + 1e-6 for r in residuals)
+        end
+    end
+
+    mktempdir() do directory
+        output = joinpath(directory, "regression-losses.png")
+        example.savefig(example.loss_plot, output)
+        @test filesize(output) > 0
+    end
+end
+
 module HouseExample end
 
 @testset "House construction class example" begin
